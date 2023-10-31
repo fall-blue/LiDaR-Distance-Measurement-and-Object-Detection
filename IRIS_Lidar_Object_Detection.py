@@ -6,15 +6,26 @@ import torch
 from gtts import gTTS
 import os
 
-# this will load the object detection model
+# this will load object detection model 
 model = torch.load("")
 
-# this will initialize the lidar sensor
+# this will initialize the LiDAR sensor
 button_pin = 22
-sensor_serial = serial.Serial("/dev/serial0", baudrate=115200, timeout=1)
+sensor_serial = serial.Serial("/dev/ttyUSB0", baudrate=115200, timeout=1)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 collecting_data = False
+
+# this will set camera configuration for decent video quality and narrow FOV
+camera = cv2.VideoCapture(0)
+camera.set(3, 1280)  # Width (720p resolution)
+camera.set(4, 720)   # Height (720p resolution)
+camera.set(cv2.CAP_PROP_FPS, 30)  # Frame rate
+
+# this will define the central region dimensions
+central_width = 320 
+central_height = 720
+central_x = (1280 - central_width) // 2  
 
 def collect_data():
     global collecting_data
@@ -31,26 +42,24 @@ def collect_data():
         sensor_serial.close()
 
 def detect_and_play_audio(distance):
-    cap = cv2.VideoCapture(0)  # this will initialize the camera
-
     try:
         while True:
-            ret, frame = cap.read()  # this will read a frame from the camera
+            ret, frame = camera.read()  # this will read a frame from the camera
 
-            if not ret:
-                break
+            # this will crop the central region
+            cropped_frame = frame[;, central_x:central_x + central_width]
 
-            # this will perform object detection using YOLOv8
-            results = model(frame)
+            # this will perform object detection on the cropped frame
+            results = model(cropped_frame)
 
             for result in results.xyxy[0].cpu().numpy():
                 class_id = int(result[5])
                 class_label = model.names[class_id]
-                if 1.0 <= distance <= 2.0:  # Filter objects within 1-2 meters
+                if 1.5 <= distance <= 3.0:  # this will filter objects within 1.5-3.0 meters
                     print(f"Detected {class_label} at {distance} meters")
                     play_audio_message(class_label, distance)
 
-            cv2.imshow("Object Detection", frame)  # Display the video frame
+            cv2.imshow("Object Detection", cropped_frame)  # this will display the video frame
             key = cv2.waitKey(1) & 0xFF
 
             if key == ord("q"):
@@ -58,7 +67,7 @@ def detect_and_play_audio(distance):
     except Exception as e:
         print(f"Error in detect_and_play_audio: {e}")
     finally:
-        cap.release()
+        camera.release()
         cv2.destroyAllWindows()
 
 def play_audio_message(class_label, distance):
@@ -66,11 +75,11 @@ def play_audio_message(class_label, distance):
         # this will generate the audio message
         message = f"A {class_label} is {distance} meters away."
 
-        # this will use google text to speech to generate audio from the message
+        # this will use Google Text-to-Speech to generate audio from the message
         tts = gTTS(text=message, lang='en')
         tts.save("temp_audio.mp3")  # this will save the generated audio to a temporary file
 
-        # this will play the generated audio using mpg123 player.
+        # this will play the generated audio using the mpg123 player
         os.system("mpg123 temp_audio.mp3")
     except Exception as e:
         print(f"Error in play_audio_message: {e}")
