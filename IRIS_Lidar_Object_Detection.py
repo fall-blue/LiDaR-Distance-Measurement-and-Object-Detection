@@ -7,7 +7,7 @@ from gtts import gTTS
 import os
 
 # this will load the object detection model
-model = torch.load("your_model_file_path")
+model = torch.load("")
 
 # this will initialize the lidar sensor
 button_pin = 22
