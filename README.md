@@ -1,4 +1,4 @@
-# IRIS-Project
+# LiDAR Object Detection and Distance Measurement
 The project focuses on creating an indoor navigation device
 for individuals with visual impairments. Combining YOLOv8
 object detection, a TF-Luna LiDAR sensor, and a Raspberry
