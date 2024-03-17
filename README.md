@@ -11,4 +11,4 @@ commands and tactile controls, offering an integrated
 solution for safer and more independent navigation in indoor
 environments.
 
-Full Project Document: https://drive.google.com/file/d/1XDmwQd3a79W2PDyHBaVMGhBQEMNF_8Os/view?usp=sharing
+Full Project Document: https://github.com/fall-blue/Lidar-Object-Detection-and-Distance-Measurement/blob/main/IRISProjectReport.pdf
